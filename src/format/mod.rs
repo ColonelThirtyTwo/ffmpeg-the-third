@@ -93,7 +93,7 @@ pub fn input_with_dictionary<P: AsRef<Path>>(
 
 pub fn input_with_interrupt<P: AsRef<Path>, F>(path: P, closure: F) -> Result<context::Input, Error>
 where
-    F: FnMut() -> bool,
+    F: Fn() -> bool + Send + Sync,
 {
     unsafe {
         let mut ps = avformat_alloc_context();

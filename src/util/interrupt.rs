@@ -8,12 +8,11 @@ pub struct Interrupt {
     pub interrupt: AVIOInterruptCB,
 }
 
-#[allow(clippy::needless_borrow)]
 extern "C" fn callback<F>(opaque: *mut c_void) -> c_int
 where
-    F: FnMut() -> bool,
+    F: Fn() -> bool + Send + Sync,
 {
-    match panic::catch_unwind(|| (unsafe { &mut *(opaque as *mut F) })()) {
+    match panic::catch_unwind(|| unsafe { (*opaque.cast::<F>().cast_const())() }) {
         Ok(ret) => ret as c_int,
         Err(_) => process::abort(),
     }
@@ -21,7 +20,7 @@ where
 
 pub fn new<F>(opaque: Box<F>) -> Interrupt
 where
-    F: FnMut() -> bool,
+    F: Fn() -> bool + Send + Sync,
 {
     let interrupt_cb = AVIOInterruptCB {
         callback: Some(callback::<F>),
