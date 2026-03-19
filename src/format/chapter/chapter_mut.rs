@@ -3,20 +3,20 @@ use std::ops::Deref;
 
 use super::Chapter;
 use crate::ffi::*;
-use crate::format::context::common::Context;
+use crate::format::context::common::Common;
 use crate::{Dictionary, DictionaryMut, Rational};
 
 // WARNING: index refers to the offset in the chapters array (starting from 0)
 // it is not necessarly equal to the id (which may start at 1)
 pub struct ChapterMut<'a> {
-    context: &'a mut Context,
+    context: &'a mut Common,
     index: usize,
 
     immutable: Chapter<'a>,
 }
 
 impl<'a> ChapterMut<'a> {
-    pub unsafe fn wrap(context: &mut Context, index: usize) -> ChapterMut<'_> {
+    pub unsafe fn wrap(context: &mut Common, index: usize) -> ChapterMut<'_> {
         ChapterMut {
             context: mem::transmute_copy(&context),
             index,

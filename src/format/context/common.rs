@@ -9,26 +9,26 @@ use libc::{c_int, c_uint};
 
 type DtorHolder = Destructor;
 
-pub struct Context {
+pub struct Common {
     ptr: *mut AVFormatContext,
     _dtor: DtorHolder,
 }
 
-unsafe impl Send for Context {}
+unsafe impl Send for Common {}
 
-impl Context {
+impl Common {
     pub unsafe fn wrap(ptr: *mut AVFormatContext, mode: destructor::Mode) -> Self {
-        Context {
+        Common {
             ptr,
             _dtor: Self::new_destructor_holder(ptr, mode),
         }
     }
 
-    pub unsafe fn as_ptr(&self) -> *const AVFormatContext {
+    pub fn as_ptr(&self) -> *const AVFormatContext {
         self.ptr as *const _
     }
 
-    pub unsafe fn as_mut_ptr(&mut self) -> *mut AVFormatContext {
+    pub fn as_mut_ptr(&mut self) -> *mut AVFormatContext {
         self.ptr
     }
 
@@ -40,7 +40,7 @@ impl Context {
     }
 }
 
-impl Context {
+impl Common {
     #[inline]
     pub fn nb_streams(&self) -> u32 {
         unsafe { (*self.as_ptr()).nb_streams }
@@ -133,14 +133,14 @@ impl Context {
 }
 
 pub struct Best<'a> {
-    context: &'a Context,
+    context: &'a Common,
 
     wanted: i32,
     related: i32,
 }
 
 impl<'a> Best<'a> {
-    pub unsafe fn new<'b, 'c: 'b>(context: &'c Context) -> Best<'b> {
+    pub unsafe fn new<'b, 'c: 'b>(context: &'c Common) -> Best<'b> {
         Best {
             context,
 
@@ -190,12 +190,12 @@ impl<'a> Best<'a> {
 }
 
 pub struct StreamIter<'a> {
-    context: &'a Context,
+    context: &'a Common,
     current: c_uint,
 }
 
 impl<'a> StreamIter<'a> {
-    pub fn new<'s, 'c: 's>(context: &'c Context) -> StreamIter<'s> {
+    pub fn new<'s, 'c: 's>(context: &'c Common) -> StreamIter<'s> {
         StreamIter {
             context,
             current: 0,
@@ -256,12 +256,12 @@ impl<'a> Iterator for StreamIter<'a> {
 impl<'a> ExactSizeIterator for StreamIter<'a> {}
 
 pub struct StreamIterMut<'a> {
-    context: &'a mut Context,
+    context: &'a mut Common,
     current: c_uint,
 }
 
 impl<'a> StreamIterMut<'a> {
-    pub fn new<'s, 'c: 's>(context: &'c mut Context) -> StreamIterMut<'s> {
+    pub fn new<'s, 'c: 's>(context: &'c mut Common) -> StreamIterMut<'s> {
         StreamIterMut {
             context,
             current: 0,
@@ -299,12 +299,12 @@ impl<'a> Iterator for StreamIterMut<'a> {
 impl<'a> ExactSizeIterator for StreamIterMut<'a> {}
 
 pub struct ChapterIter<'a> {
-    context: &'a Context,
+    context: &'a Common,
     current: c_uint,
 }
 
 impl<'a> ChapterIter<'a> {
-    pub fn new<'s, 'c: 's>(context: &'c Context) -> ChapterIter<'s> {
+    pub fn new<'s, 'c: 's>(context: &'c Common) -> ChapterIter<'s> {
         ChapterIter {
             context,
             current: 0,
@@ -342,12 +342,12 @@ impl<'a> Iterator for ChapterIter<'a> {
 impl<'a> ExactSizeIterator for ChapterIter<'a> {}
 
 pub struct ChapterIterMut<'a> {
-    context: &'a mut Context,
+    context: &'a mut Common,
     current: c_uint,
 }
 
 impl<'a> ChapterIterMut<'a> {
-    pub fn new<'s, 'c: 's>(context: &'c mut Context) -> ChapterIterMut<'s> {
+    pub fn new<'s, 'c: 's>(context: &'c mut Common) -> ChapterIterMut<'s> {
         ChapterIterMut {
             context,
             current: 0,
@@ -387,7 +387,7 @@ impl<'a> Iterator for ChapterIterMut<'a> {
 
 impl<'a> ExactSizeIterator for ChapterIterMut<'a> {}
 
-impl fmt::Debug for Context {
+impl fmt::Debug for Common {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let mut s = fmt.debug_struct("AVFormatContext");
         s.field("bit_rate", &self.bit_rate());

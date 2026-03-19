@@ -1,7 +1,7 @@
 use super::Disposition;
 use crate::codec;
 use crate::ffi::*;
-use crate::format::context::common::Context;
+use crate::format::context::common::Common;
 use crate::{DictionaryRef, Discard, Rational};
 
 #[cfg(not(feature = "ffmpeg_8_0"))]
@@ -11,12 +11,12 @@ use libc::c_int;
 
 #[derive(Debug)]
 pub struct Stream<'a> {
-    context: &'a Context,
+    context: &'a Common,
     index: usize,
 }
 
 impl<'a> Stream<'a> {
-    pub unsafe fn wrap(context: &Context, index: usize) -> Stream<'_> {
+    pub unsafe fn wrap(context: &Common, index: usize) -> Stream<'_> {
         Stream { context, index }
     }
 

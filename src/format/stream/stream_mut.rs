@@ -3,19 +3,19 @@ use std::ops::Deref;
 
 use super::Stream;
 use crate::ffi::*;
-use crate::format::context::common::Context;
+use crate::format::context::common::Common;
 use crate::AsPtr;
 use crate::{codec, Dictionary, Rational};
 
 pub struct StreamMut<'a> {
-    context: &'a mut Context,
+    context: &'a mut Common,
     index: usize,
 
     immutable: Stream<'a>,
 }
 
 impl<'a> StreamMut<'a> {
-    pub unsafe fn wrap(context: &mut Context, index: usize) -> StreamMut<'_> {
+    pub unsafe fn wrap(context: &mut Common, index: usize) -> StreamMut<'_> {
         StreamMut {
             context: mem::transmute_copy(&context),
             index,

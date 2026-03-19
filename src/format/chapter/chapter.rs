@@ -1,17 +1,17 @@
 use crate::ffi::*;
 use crate::{DictionaryRef, Rational};
 
-use crate::format::context::common::Context;
+use crate::format::context::common::Common;
 
 // WARNING: index refers to the offset in the chapters array (starting from 0)
 // it is not necessarly equal to the id (which may start at 1)
 pub struct Chapter<'a> {
-    context: &'a Context,
+    context: &'a Common,
     index: usize,
 }
 
 impl<'a> Chapter<'a> {
-    pub unsafe fn wrap(context: &Context, index: usize) -> Chapter<'_> {
+    pub unsafe fn wrap(context: &Common, index: usize) -> Chapter<'_> {
         Chapter { context, index }
     }
 

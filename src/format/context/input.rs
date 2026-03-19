@@ -2,14 +2,13 @@ use std::ffi::CString;
 use std::mem;
 use std::ops::{Bound, Deref, DerefMut, RangeBounds};
 
-use super::common::Context;
+use super::common::Common;
 use super::destructor;
 use crate::ffi::*;
 use crate::{format, Error, Packet, Stream};
 
 pub struct Input {
-    ptr: *mut AVFormatContext,
-    ctx: Context,
+    ctx: Common,
 }
 
 unsafe impl Send for Input {}
@@ -17,17 +16,8 @@ unsafe impl Send for Input {}
 impl Input {
     pub unsafe fn wrap(ptr: *mut AVFormatContext) -> Self {
         Input {
-            ptr,
-            ctx: Context::wrap(ptr, destructor::Mode::Input),
+            ctx: Common::wrap(ptr, destructor::Mode::Input),
         }
-    }
-
-    pub unsafe fn as_ptr(&self) -> *const AVFormatContext {
-        self.ptr as *const _
-    }
-
-    pub unsafe fn as_mut_ptr(&mut self) -> *mut AVFormatContext {
-        self.ptr
     }
 }
 
@@ -85,7 +75,7 @@ impl Input {
 }
 
 impl Deref for Input {
-    type Target = Context;
+    type Target = Common;
 
     fn deref(&self) -> &Self::Target {
         &self.ctx

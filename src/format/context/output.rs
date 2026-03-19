@@ -2,15 +2,14 @@ use std::ffi::CString;
 use std::ops::{Deref, DerefMut};
 use std::ptr;
 
-use super::common::Context;
+use super::common::Common;
 use super::destructor;
 use crate::codec::traits;
 use crate::ffi::*;
 use crate::{format, ChapterMut, Dictionary, Error, Rational, StreamMut};
 
 pub struct Output {
-    ptr: *mut AVFormatContext,
-    ctx: Context,
+    ctx: Common,
 }
 
 unsafe impl Send for Output {}
@@ -18,17 +17,8 @@ unsafe impl Send for Output {}
 impl Output {
     pub unsafe fn wrap(ptr: *mut AVFormatContext) -> Self {
         Output {
-            ptr,
-            ctx: Context::wrap(ptr, destructor::Mode::Output),
+            ctx: Common::wrap(ptr, destructor::Mode::Output),
         }
-    }
-
-    pub unsafe fn as_ptr(&self) -> *const AVFormatContext {
-        self.ptr as *const _
-    }
-
-    pub unsafe fn as_mut_ptr(&mut self) -> *mut AVFormatContext {
-        self.ptr
     }
 }
 
@@ -154,7 +144,7 @@ impl Output {
 }
 
 impl Deref for Output {
-    type Target = Context;
+    type Target = Common;
 
     fn deref(&self) -> &Self::Target {
         &self.ctx

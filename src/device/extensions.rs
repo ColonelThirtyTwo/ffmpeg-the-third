@@ -3,11 +3,11 @@ use std::ptr;
 
 use crate::device;
 use crate::ffi::*;
-use crate::format::context::common::Context;
+use crate::format::context::common::Common;
 use crate::Error;
 use libc::c_int;
 
-impl Context {
+impl Common {
     pub fn devices(&self) -> Result<DeviceIter<'_>, Error> {
         unsafe { DeviceIter::wrap(self.as_ptr()) }
     }
