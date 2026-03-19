@@ -38,17 +38,20 @@ pub fn license() -> &'static str {
     unsafe { utils::str_from_c_ptr(avformat_license()) }
 }
 
-// XXX: use to_cstring when stable
-fn from_path<P: AsRef<Path>>(path: P) -> CString {
-    CString::new(path.as_ref().as_os_str().to_str().unwrap()).unwrap()
+fn path_to_uri<P: AsRef<Path>>(path: P) -> CString {
+    let mut bytes = Vec::with_capacity(path.as_ref().as_os_str().len() + "file:".len() + 1);
+    bytes.extend_from_slice(b"file:");
+    bytes.extend_from_slice(path.as_ref().as_os_str().as_encoded_bytes());
+    bytes.push(0);
+    CString::from_vec_with_nul(bytes).unwrap()
 }
 
 pub fn input<P: AsRef<Path>>(path: P) -> Result<context::Input, Error> {
     unsafe {
         let mut ps = ptr::null_mut();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
 
-        match avformat_open_input(&mut ps, path.as_ptr(), ptr::null_mut(), ptr::null_mut()) {
+        match avformat_open_input(&mut ps, uri.as_ptr(), ptr::null_mut(), ptr::null_mut()) {
             0 => match avformat_find_stream_info(ps, ptr::null_mut()) {
                 r if r >= 0 => Ok(context::Input::wrap(ps)),
                 e => {
@@ -68,9 +71,9 @@ pub fn input_with_dictionary<P: AsRef<Path>>(
 ) -> Result<context::Input, Error> {
     unsafe {
         let mut ps = ptr::null_mut();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
         let mut opts = options.disown();
-        let res = avformat_open_input(&mut ps, path.as_ptr(), ptr::null_mut(), &mut opts);
+        let res = avformat_open_input(&mut ps, uri.as_ptr(), ptr::null_mut(), &mut opts);
 
         Dictionary::own(opts);
 
@@ -94,10 +97,10 @@ where
 {
     unsafe {
         let mut ps = avformat_alloc_context();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
         (*ps).interrupt_callback = interrupt::new(Box::new(closure)).interrupt;
 
-        match avformat_open_input(&mut ps, path.as_ptr(), ptr::null_mut(), ptr::null_mut()) {
+        match avformat_open_input(&mut ps, uri.as_ptr(), ptr::null_mut(), ptr::null_mut()) {
             0 => match avformat_find_stream_info(ps, ptr::null_mut()) {
                 r if r >= 0 => Ok(context::Input::wrap(ps)),
                 e => {
@@ -114,10 +117,10 @@ where
 pub fn output<P: AsRef<Path>>(path: P) -> Result<context::Output, Error> {
     unsafe {
         let mut ps = ptr::null_mut();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
 
-        match avformat_alloc_output_context2(&mut ps, ptr::null_mut(), ptr::null(), path.as_ptr()) {
-            0 => match avio_open(&mut (*ps).pb, path.as_ptr(), AVIO_FLAG_WRITE) {
+        match avformat_alloc_output_context2(&mut ps, ptr::null_mut(), ptr::null(), uri.as_ptr()) {
+            0 => match avio_open(&mut (*ps).pb, uri.as_ptr(), AVIO_FLAG_WRITE) {
                 0 => Ok(context::Output::wrap(ps)),
                 e => Err(Error::from(e)),
             },
@@ -130,14 +133,14 @@ pub fn output<P: AsRef<Path>>(path: P) -> Result<context::Output, Error> {
 pub fn output_with<P: AsRef<Path>>(path: P, options: Dictionary) -> Result<context::Output, Error> {
     unsafe {
         let mut ps = ptr::null_mut();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
         let mut opts = options.disown();
 
-        match avformat_alloc_output_context2(&mut ps, ptr::null_mut(), ptr::null(), path.as_ptr()) {
+        match avformat_alloc_output_context2(&mut ps, ptr::null_mut(), ptr::null(), uri.as_ptr()) {
             0 => {
                 let res = avio_open2(
                     &mut (*ps).pb,
-                    path.as_ptr(),
+                    uri.as_ptr(),
                     AVIO_FLAG_WRITE,
                     ptr::null(),
                     &mut opts,
@@ -159,16 +162,16 @@ pub fn output_with<P: AsRef<Path>>(path: P, options: Dictionary) -> Result<conte
 pub fn output_as<P: AsRef<Path>>(path: P, format: &str) -> Result<context::Output, Error> {
     unsafe {
         let mut ps = ptr::null_mut();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
         let format = CString::new(format).unwrap();
 
         match avformat_alloc_output_context2(
             &mut ps,
             ptr::null_mut(),
             format.as_ptr(),
-            path.as_ptr(),
+            uri.as_ptr(),
         ) {
-            0 => match avio_open(&mut (*ps).pb, path.as_ptr(), AVIO_FLAG_WRITE) {
+            0 => match avio_open(&mut (*ps).pb, uri.as_ptr(), AVIO_FLAG_WRITE) {
                 0 => Ok(context::Output::wrap(ps)),
                 e => Err(Error::from(e)),
             },
@@ -185,7 +188,7 @@ pub fn output_as_with<P: AsRef<Path>>(
 ) -> Result<context::Output, Error> {
     unsafe {
         let mut ps = ptr::null_mut();
-        let path = from_path(path);
+        let uri = path_to_uri(path);
         let format = CString::new(format).unwrap();
         let mut opts = options.disown();
 
@@ -193,12 +196,12 @@ pub fn output_as_with<P: AsRef<Path>>(
             &mut ps,
             ptr::null_mut(),
             format.as_ptr(),
-            path.as_ptr(),
+            uri.as_ptr(),
         ) {
             0 => {
                 let res = avio_open2(
                     &mut (*ps).pb,
-                    path.as_ptr(),
+                    uri.as_ptr(),
                     AVIO_FLAG_WRITE,
                     ptr::null(),
                     &mut opts,
