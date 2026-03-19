@@ -98,19 +98,26 @@ where
     unsafe {
         let mut ps = avformat_alloc_context();
         let uri = path_to_uri(path);
-        (*ps).interrupt_callback = interrupt::new(Box::new(closure)).interrupt;
+        let interrupt_cb = interrupt::new(Box::new(closure));
+        (*ps).interrupt_callback = interrupt_cb.clone();
 
-        match avformat_open_input(&mut ps, uri.as_ptr(), ptr::null_mut(), ptr::null_mut()) {
-            0 => match avformat_find_stream_info(ps, ptr::null_mut()) {
-                r if r >= 0 => Ok(context::Input::wrap(ps)),
-                e => {
-                    avformat_close_input(&mut ps);
-                    Err(Error::from(e))
-                }
-            },
-
-            e => Err(Error::from(e)),
+        let e = avformat_open_input(&mut ps, uri.as_ptr(), ptr::null_mut(), ptr::null_mut());
+        if e < 0 {
+            interrupt::free::<F>(&interrupt_cb);
+            return Err(Error::from(e));
         }
+        let e = avformat_find_stream_info(ps, ptr::null_mut());
+        if e < 0 {
+            avformat_close_input(&mut ps);
+            interrupt::free::<F>(&interrupt_cb);
+            return Err(Error::from(e));
+        }
+
+        Ok(context::Input::wrap_with_free(ps, |mut p| {
+            let interrupt_cb = (*p).interrupt_callback.clone();
+            avformat_close_input(&mut p);
+            interrupt::free::<F>(&interrupt_cb);
+        }))
     }
 }
 

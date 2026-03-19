@@ -3,7 +3,6 @@ use std::ops::{Deref, DerefMut};
 use std::ptr;
 
 use super::common::Common;
-use super::destructor;
 use crate::codec::traits;
 use crate::ffi::*;
 use crate::{format, ChapterMut, Dictionary, Error, Rational, StreamMut};
@@ -16,8 +15,20 @@ unsafe impl Send for Output {}
 
 impl Output {
     pub unsafe fn wrap(ptr: *mut AVFormatContext) -> Self {
-        Output {
-            ctx: Common::wrap(ptr, destructor::Mode::Output),
+        Self {
+            ctx: Common::wrap(ptr, |p| {
+                avio_close((*p).pb);
+                avformat_free_context(p);
+            }),
+        }
+    }
+
+    pub unsafe fn wrap_with_free(
+        ptr: *mut AVFormatContext,
+        free: fn(*mut AVFormatContext),
+    ) -> Self {
+        Self {
+            ctx: Common::wrap(ptr, free),
         }
     }
 }

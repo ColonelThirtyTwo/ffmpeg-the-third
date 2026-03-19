@@ -2,26 +2,20 @@ use std::fmt;
 use std::mem;
 use std::ptr;
 
-use super::destructor::{self, Destructor};
 use crate::ffi::*;
 use crate::{media, Chapter, ChapterMut, DictionaryRef, Stream, StreamMut};
 use libc::{c_int, c_uint};
 
-type DtorHolder = Destructor;
-
 pub struct Common {
     ptr: *mut AVFormatContext,
-    _dtor: DtorHolder,
+    free: fn(*mut AVFormatContext),
 }
 
 unsafe impl Send for Common {}
 
 impl Common {
-    pub unsafe fn wrap(ptr: *mut AVFormatContext, mode: destructor::Mode) -> Self {
-        Common {
-            ptr,
-            _dtor: Self::new_destructor_holder(ptr, mode),
-        }
+    pub(super) unsafe fn wrap(ptr: *mut AVFormatContext, free: fn(*mut AVFormatContext)) -> Self {
+        Self { ptr, free }
     }
 
     pub fn as_ptr(&self) -> *const AVFormatContext {
@@ -31,12 +25,11 @@ impl Common {
     pub fn as_mut_ptr(&mut self) -> *mut AVFormatContext {
         self.ptr
     }
+}
 
-    unsafe fn new_destructor_holder(
-        ptr: *mut AVFormatContext,
-        mode: destructor::Mode,
-    ) -> DtorHolder {
-        Destructor::new(ptr, mode)
+impl std::ops::Drop for Common {
+    fn drop(&mut self) {
+        (self.free)(self.ptr)
     }
 }
 

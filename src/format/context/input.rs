@@ -3,7 +3,6 @@ use std::mem;
 use std::ops::{Bound, Deref, DerefMut, RangeBounds};
 
 use super::common::Common;
-use super::destructor;
 use crate::ffi::*;
 use crate::{format, Error, Packet, Stream};
 
@@ -15,8 +14,17 @@ unsafe impl Send for Input {}
 
 impl Input {
     pub unsafe fn wrap(ptr: *mut AVFormatContext) -> Self {
-        Input {
-            ctx: Common::wrap(ptr, destructor::Mode::Input),
+        Self {
+            ctx: Common::wrap(ptr, |mut p| avformat_close_input(&mut p)),
+        }
+    }
+
+    pub unsafe fn wrap_with_free(
+        ptr: *mut AVFormatContext,
+        free: fn(*mut AVFormatContext),
+    ) -> Self {
+        Self {
+            ctx: Common::wrap(ptr, free),
         }
     }
 }

@@ -1,6 +1,3 @@
-pub mod destructor;
-pub use self::destructor::Destructor;
-
 pub mod input;
 pub use self::input::Input;
 
