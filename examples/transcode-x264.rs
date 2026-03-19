@@ -15,7 +15,7 @@
 //   transcode-x264 input.flv output.mp4
 //   transcode-x264 input.mkv output.mkv 'preset=veryslow,crf=18'
 
-use ffmpeg_the_third as ffmpeg;
+use ffmpeg_the_third::{self as ffmpeg, dict};
 
 use std::collections::HashMap;
 use std::env;
@@ -155,7 +155,7 @@ impl Transcoder {
 }
 
 fn parse_opts<'a>(s: String) -> Option<Dictionary<'a>> {
-    let mut dict = Dictionary::new();
+    let mut dict = dict!();
     for keyval in s.split_terminator(',') {
         let tokens: Vec<&str> = keyval.split('=').collect();
         match tokens[..] {
