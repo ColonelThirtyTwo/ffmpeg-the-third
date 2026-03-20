@@ -353,6 +353,22 @@ impl ParseCallbacks for Callbacks {
             _ => Default,
         }
     }
+
+    fn add_attributes(&self, info: &bindgen::callbacks::AttributeInfo<'_>) -> Vec<String> {
+        const EXTENDABLE: &[&str] = &[
+            "AVCodecContext",
+            "AVFormatContext",
+            "AVIOContext",
+            "AVProgram",
+            "AVStream",
+            "SwsContext",
+        ];
+        if EXTENDABLE.contains(&info.name) {
+            vec!["#[non_exhaustive]".into()]
+        } else {
+            vec![]
+        }
+    }
 }
 
 trait FFmpegConfigure {
