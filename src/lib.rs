@@ -34,10 +34,7 @@ pub use crate::util::format::pixel::AlphaMode;
 #[cfg(feature = "format")]
 pub mod format;
 #[cfg(feature = "format")]
-pub use crate::format::{
-    chapter::{Chapter, ChapterMut},
-    stream::Stream,
-};
+pub use crate::format::{chapter::Chapter, stream::Stream};
 
 #[cfg(feature = "codec")]
 pub mod codec;

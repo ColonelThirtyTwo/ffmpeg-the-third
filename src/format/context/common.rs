@@ -1,10 +1,9 @@
-use std::ffi::{c_int, c_uint};
+use std::ffi::c_int;
 use std::fmt;
-use std::mem;
 use std::ptr;
 
 use crate::ffi::*;
-use crate::{media, Chapter, ChapterMut, DictionaryRef, Stream};
+use crate::{media, Chapter, DictionaryRef, Stream};
 
 pub struct Common {
     ptr: *mut AVFormatContext,
@@ -36,7 +35,7 @@ impl std::ops::Drop for Common {
 impl Common {
     #[inline]
     pub fn nb_streams(&self) -> u32 {
-        unsafe { (*self.as_ptr()).nb_streams }
+        unsafe { (*self.ptr).nb_streams }
     }
 
     pub fn stream(&self, index: usize) -> Option<&Stream> {
@@ -64,41 +63,31 @@ impl Common {
     }
 
     pub fn bit_rate(&self) -> i64 {
-        unsafe { (*self.as_ptr()).bit_rate }
+        unsafe { (*self.ptr).bit_rate }
     }
 
     pub fn duration(&self) -> i64 {
-        unsafe { (*self.as_ptr()).duration }
+        unsafe { (*self.ptr).duration }
     }
 
     #[inline]
     pub fn nb_chapters(&self) -> u32 {
-        unsafe { (*self.as_ptr()).nb_chapters }
+        unsafe { (*self.ptr).nb_chapters }
     }
 
-    pub fn chapter<'a, 'b>(&'a self, index: usize) -> Option<Chapter<'b>>
-    where
-        'a: 'b,
-    {
-        unsafe {
-            if index >= self.nb_chapters() as usize {
-                None
-            } else {
-                Some(Chapter::wrap(self, index))
-            }
+    pub fn chapter(&self, index: usize) -> Option<&Chapter> {
+        if index >= self.nb_chapters() as usize {
+            None
+        } else {
+            Some(unsafe { Chapter::from_raw(*(*self.ptr).chapters.add(index)) })
         }
     }
 
-    pub fn chapter_mut<'a, 'b>(&'a mut self, index: usize) -> Option<ChapterMut<'b>>
-    where
-        'a: 'b,
-    {
-        unsafe {
-            if index >= self.nb_chapters() as usize {
-                None
-            } else {
-                Some(ChapterMut::wrap(self, index))
-            }
+    pub fn chapter_mut(&mut self, index: usize) -> Option<&mut Chapter> {
+        if index >= self.nb_chapters() as usize {
+            None
+        } else {
+            Some(unsafe { Chapter::from_raw_mut(*(*self.ptr).chapters.add(index)) })
         }
     }
 
@@ -111,7 +100,7 @@ impl Common {
     }
 
     pub fn metadata(&self) -> DictionaryRef<'_> {
-        unsafe { DictionaryRef::wrap((*self.as_ptr()).metadata) }
+        unsafe { DictionaryRef::wrap((*self.ptr).metadata) }
     }
 }
 
@@ -264,7 +253,7 @@ impl<'a> ExactSizeIterator for StreamIterMut<'a> {}
 
 pub struct ChapterIter<'a> {
     context: &'a Common,
-    current: c_uint,
+    current: usize,
 }
 
 impl<'a> ChapterIter<'a> {
@@ -277,29 +266,21 @@ impl<'a> ChapterIter<'a> {
 }
 
 impl<'a> Iterator for ChapterIter<'a> {
-    type Item = Chapter<'a>;
+    type Item = &'a Chapter;
 
     fn next(&mut self) -> Option<<Self as Iterator>::Item> {
-        unsafe {
-            if self.current >= (*self.context.as_ptr()).nb_chapters {
-                return None;
-            }
-
-            self.current += 1;
-
-            Some(Chapter::wrap(self.context, (self.current - 1) as usize))
+        if self.current >= self.context.nb_chapters() as usize {
+            return None;
         }
+
+        self.current += 1;
+        Some(self.context.chapter(self.current - 1).unwrap())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        unsafe {
-            let length = (*self.context.as_ptr()).nb_chapters as usize;
+        let length = self.context.nb_chapters() as usize;
 
-            (
-                length - self.current as usize,
-                Some(length - self.current as usize),
-            )
-        }
+        (length - self.current, Some(length - self.current))
     }
 }
 
@@ -307,7 +288,7 @@ impl<'a> ExactSizeIterator for ChapterIter<'a> {}
 
 pub struct ChapterIterMut<'a> {
     context: &'a mut Common,
-    current: c_uint,
+    current: usize,
 }
 
 impl<'a> ChapterIterMut<'a> {
@@ -320,26 +301,20 @@ impl<'a> ChapterIterMut<'a> {
 }
 
 impl<'a> Iterator for ChapterIterMut<'a> {
-    type Item = ChapterMut<'a>;
+    type Item = &'a mut Chapter;
 
     fn next(&mut self) -> Option<<Self as Iterator>::Item> {
-        unsafe {
-            if self.current >= (*self.context.as_ptr()).nb_chapters {
-                return None;
-            }
-
-            self.current += 1;
-
-            Some(ChapterMut::wrap(
-                mem::transmute_copy(&self.context),
-                (self.current - 1) as usize,
-            ))
+        if self.current >= self.context.nb_chapters() as usize {
+            return None;
         }
+
+        self.current += 1;
+        Some(unsafe { Chapter::from_raw_mut(*(*self.context.ptr).chapters.add(self.current - 1)) })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         unsafe {
-            let length = (*self.context.as_ptr()).nb_chapters as usize;
+            let length = (*self.context.ptr).nb_chapters as usize;
 
             (
                 length - self.current as usize,

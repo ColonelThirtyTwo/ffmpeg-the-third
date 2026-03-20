@@ -61,7 +61,7 @@ impl Stream {
 
     /// # Safety
     ///
-    /// Fields must not be altered to valid values
+    /// Fields must not be altered to invalid values
     pub unsafe fn as_mut(&mut self) -> &mut AVStream {
         // safety: this is a transparent wrapper
         unsafe { std::mem::transmute::<&mut Self, &mut AVStream>(self) }

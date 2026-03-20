@@ -4,8 +4,8 @@ use std::ptr;
 
 use super::common::Common;
 use crate::codec::traits;
-use crate::{ffi::*, Stream};
-use crate::{format, ChapterMut, Dictionary, Error, Rational};
+use crate::{ffi::*, Chapter, Stream};
+use crate::{format, Dictionary, Error, Rational};
 
 pub struct Output {
     ctx: Common,
@@ -90,7 +90,7 @@ impl Output {
         start: i64,
         end: i64,
         title: S,
-    ) -> Result<ChapterMut<'_>, Error> {
+    ) -> Result<&mut Chapter, Error> {
         // avpriv_new_chapter is private (libavformat/internal.h)
 
         if start > end {
@@ -98,9 +98,9 @@ impl Output {
         }
 
         let mut existing = None;
-        for chapter in self.chapters() {
+        for (i, chapter) in self.chapters().enumerate() {
             if chapter.id() == id {
-                existing = Some(chapter.index());
+                existing = Some(i);
                 break;
             }
         }
@@ -132,7 +132,7 @@ impl Output {
             },
         };
 
-        let mut chapter = self.chapter_mut(index).ok_or(Error::Bug)?;
+        let chapter = self.chapter_mut(index).ok_or(Error::Bug)?;
 
         chapter.set_id(id);
         chapter.set_time_base(time_base);
