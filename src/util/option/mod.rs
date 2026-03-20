@@ -2,9 +2,9 @@ mod traits;
 pub use self::traits::{Gettable, Iterable, Settable};
 
 use crate::ffi::*;
-use libc::c_uint;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+use std::ffi::c_uint;
 
 bitflags::bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

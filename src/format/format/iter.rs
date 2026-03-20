@@ -1,8 +1,8 @@
+use std::ffi::c_void;
 use std::ptr::null_mut;
 
 use crate::ffi::*;
 use crate::format::format::{Input, Output};
-use libc::c_void;
 
 pub struct DemuxerIter {
     ptr: *mut c_void,

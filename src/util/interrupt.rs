@@ -2,7 +2,7 @@ use std::panic;
 use std::process;
 
 use crate::ffi::*;
-use libc::{c_int, c_void};
+use std::ffi::{c_int, c_void};
 
 extern "C" fn callback<F>(opaque: *mut c_void) -> c_int
 where

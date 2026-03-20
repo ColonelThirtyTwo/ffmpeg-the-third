@@ -4,7 +4,7 @@ use crate::AsPtr;
 use crate::Dictionary;
 use crate::{DictionaryRef, Discard, Rational};
 
-use libc::c_int;
+use std::ffi::c_int;
 
 #[cfg(not(feature = "ffmpeg_8_0"))]
 use crate::codec::packet;

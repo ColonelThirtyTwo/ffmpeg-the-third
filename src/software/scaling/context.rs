@@ -4,7 +4,7 @@ use super::Flags;
 use crate::ffi::*;
 use crate::util::format;
 use crate::{frame, Error};
-use libc::c_int;
+use std::ffi::c_int;
 
 #[derive(Eq, PartialEq, Copy, Clone, Debug)]
 pub struct Definition {

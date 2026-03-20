@@ -91,11 +91,11 @@ impl Iterator for CodecDescriptorIter {
 }
 
 pub struct MimeTypeIter {
-    ptr: NonNull<*const libc::c_char>,
+    ptr: NonNull<*const std::ffi::c_char>,
 }
 
 impl MimeTypeIter {
-    pub unsafe fn from_raw(ptr: *const *const libc::c_char) -> Option<Self> {
+    pub unsafe fn from_raw(ptr: *const *const std::ffi::c_char) -> Option<Self> {
         NonNull::new(ptr as *mut _).map(|ptr| Self { ptr })
     }
 }

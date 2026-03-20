@@ -1,10 +1,10 @@
+use std::ffi::{c_int, c_uint};
 use std::fmt;
 use std::mem;
 use std::ptr;
 
 use crate::ffi::*;
 use crate::{media, Chapter, ChapterMut, DictionaryRef, Stream};
-use libc::{c_int, c_uint};
 
 pub struct Common {
     ptr: *mut AVFormatContext,

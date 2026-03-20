@@ -1,4 +1,4 @@
-use libc::{c_char, c_int, size_t};
+use std::ffi::{c_char, c_int};
 
 // Note: FFmpeg's AVERROR and AVUNERROR are conditionally defined based on
 // whether EDOM is positive, claiming that "Some platforms have E* and errno
@@ -67,7 +67,7 @@ pub const AVERROR_HTTP_SERVER_ERROR: c_int = FFERRTAG(0xF8, b'5', b'X', b'X');
 #[inline(always)]
 pub unsafe fn av_make_error_string(
     errbuf: *mut c_char,
-    errbuf_size: size_t,
+    errbuf_size: usize,
     errnum: c_int,
 ) -> *mut c_char {
     crate::av_strerror(errnum, errbuf, errbuf_size);

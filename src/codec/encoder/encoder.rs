@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 use std::ptr;
 
 use crate::ffi::*;
-use libc::c_int;
+use std::ffi::c_int;
 
 use super::{audio, subtitle, video};
 use crate::codec::Context;

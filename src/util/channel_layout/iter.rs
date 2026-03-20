@@ -1,5 +1,5 @@
 use ffmpeg_sys_the_third::av_channel_layout_standard;
-use libc::c_void;
+use std::ffi::c_void;
 
 use super::ChannelLayout;
 

@@ -1,8 +1,8 @@
 use super::Id;
 use crate::ffi::*;
-use libc::c_int;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+use std::ffi::c_int;
 
 #[allow(non_camel_case_types)]
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]

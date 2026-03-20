@@ -1,11 +1,10 @@
-use std::ffi::{CStr, CString};
+use std::ffi::{c_int, CStr, CString};
 use std::ptr::{self, NonNull};
 use std::str::from_utf8_unchecked;
 
 use super::{Context, Filter};
 use crate::ffi::*;
 use crate::Error;
-use libc::c_int;
 
 pub struct Graph {
     ptr: *mut AVFilterGraph,

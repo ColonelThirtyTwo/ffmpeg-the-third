@@ -1,11 +1,10 @@
 use std::error;
-use std::ffi::CStr;
+use std::ffi::{c_char, c_int, CStr};
 use std::fmt;
 use std::io;
 use std::str::from_utf8_unchecked;
 
 use crate::ffi::*;
-use libc::{c_char, c_int};
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 

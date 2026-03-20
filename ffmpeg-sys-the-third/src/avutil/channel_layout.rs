@@ -1,4 +1,4 @@
-use libc::c_int;
+use std::ffi::c_int;
 
 use crate::AVChannel::*;
 use crate::*;
@@ -336,7 +336,7 @@ pub const AV_CHANNEL_LAYOUT_7POINT1_TOP_BACK: AVChannelLayout =
 #[cfg(test)]
 mod test {
     use super::*;
-    use libc::c_char;
+    use std::ffi::c_char;
 
     // TODO: Missing: Ambisonic layout
 

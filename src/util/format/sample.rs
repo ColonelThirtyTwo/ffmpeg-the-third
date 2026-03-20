@@ -1,4 +1,4 @@
-use std::ffi::CString;
+use std::ffi::{c_int, c_void, CString};
 use std::ops::Index;
 use std::ptr;
 use std::slice;
@@ -6,7 +6,6 @@ use std::slice;
 use crate::ffi::AVSampleFormat::*;
 use crate::ffi::*;
 use crate::utils;
-use libc::{c_int, c_void};
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 

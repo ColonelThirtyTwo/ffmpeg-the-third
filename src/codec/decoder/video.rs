@@ -1,6 +1,5 @@
+use std::ffi::c_int;
 use std::ops::{Deref, DerefMut};
-
-use libc::c_int;
 
 use super::{slice, Opened};
 use crate::codec::Context;

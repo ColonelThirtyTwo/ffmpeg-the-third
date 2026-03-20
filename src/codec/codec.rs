@@ -185,7 +185,7 @@ impl<T> Codec<T> {
 impl Codec<AudioType> {
     /// Checks if the given sample rate is supported by this audio codec.
     #[cfg(feature = "ffmpeg_7_1")]
-    pub fn supports_rate(self, rate: libc::c_int) -> bool {
+    pub fn supports_rate(self, rate: std::ffi::c_int) -> bool {
         self.supported_rates().supports(rate)
     }
 

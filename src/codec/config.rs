@@ -78,7 +78,7 @@ where
     I: TerminatedPtrIter<AVType, WrapperType>,
     AVType: Into<WrapperType>,
 {
-    let mut out_ptr: *const libc::c_void = std::ptr::null();
+    let mut out_ptr: *const std::ffi::c_void = std::ptr::null();
 
     unsafe {
         let avctx = ctx.map_or(std::ptr::null(), |ctx| ctx.as_ptr());
@@ -207,9 +207,9 @@ impl_config_iter!(
     supported_sample_rates,
     crate::ffi::AVCodecConfig::AV_CODEC_CONFIG_SAMPLE_RATE,
     SampleRateIter,
-    libc::c_int,
-    libc::c_int,
-    0 as libc::c_int
+    std::ffi::c_int,
+    std::ffi::c_int,
+    0 as std::ffi::c_int
 );
 
 impl_config_iter!(

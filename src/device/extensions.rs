@@ -1,3 +1,4 @@
+use std::ffi::c_int;
 use std::marker::PhantomData;
 use std::ptr;
 
@@ -5,7 +6,6 @@ use crate::device;
 use crate::ffi::*;
 use crate::format::context::common::Common;
 use crate::Error;
-use libc::c_int;
 
 impl Common {
     pub fn devices(&self) -> Result<DeviceIter<'_>, Error> {

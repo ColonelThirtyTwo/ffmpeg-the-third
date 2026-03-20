@@ -1,5 +1,5 @@
 use crate::ffi::*;
-use libc::c_ulonglong;
+use std::ffi::c_ulonglong;
 
 bitflags::bitflags! {
     #[derive(Eq, PartialEq, Copy, Clone, Debug)]

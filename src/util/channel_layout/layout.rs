@@ -1,11 +1,10 @@
 use std::borrow::Borrow;
 use std::borrow::Cow;
-use std::ffi::CString;
+use std::ffi::{c_int, c_uint, CString};
 
 use crate::ffi::*;
 #[cfg(feature = "ffmpeg_7_0")]
 use crate::Error;
-use libc::{c_int, c_uint};
 
 use super::Channel;
 use super::ChannelCustom;

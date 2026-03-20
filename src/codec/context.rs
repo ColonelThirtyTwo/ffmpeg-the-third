@@ -8,7 +8,7 @@ use crate::media;
 use crate::option;
 use crate::{AsMutPtr, AsPtr};
 use crate::{Codec, Error};
-use libc::c_int;
+use std::ffi::c_int;
 
 #[cfg(feature = "ffmpeg_8_1")]
 use crate::format::AlphaMode;

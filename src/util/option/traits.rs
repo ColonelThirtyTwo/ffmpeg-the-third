@@ -5,7 +5,7 @@ use std::ffi::CString;
 use crate::ffi::*;
 use crate::util::format;
 use crate::{AsMutPtr, AsPtr, Error, Rational};
-use libc::c_int;
+use std::ffi::c_int;
 
 #[cfg(not(feature = "ffmpeg_7_0"))]
 use crate::ChannelLayoutMask;

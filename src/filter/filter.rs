@@ -1,4 +1,4 @@
-use libc::c_int;
+use std::ffi::c_int;
 use std::marker::PhantomData;
 
 use super::{Flags, Pad};

@@ -1,5 +1,5 @@
 use crate::ffi::*;
-use libc::c_int;
+use std::ffi::c_int;
 
 #[cfg(not(feature = "ffmpeg_8_0"))]
 bitflags::bitflags! {

@@ -9,7 +9,7 @@ use crate::picture;
 use crate::util::chroma;
 use crate::util::format;
 use crate::Rational;
-use libc::c_int;
+use std::ffi::c_int;
 
 #[derive(PartialEq, Eq)]
 pub struct Video(Frame);

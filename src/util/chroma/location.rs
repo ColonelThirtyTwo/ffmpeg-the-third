@@ -61,8 +61,8 @@ impl Location {
     pub fn from_pos(x: i32, y: i32) -> Self {
         unsafe {
             Self::from(av_chroma_location_pos_to_enum(
-                x as libc::c_int,
-                y as libc::c_int,
+                x as std::ffi::c_int,
+                y as std::ffi::c_int,
             ))
         }
     }

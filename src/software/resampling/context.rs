@@ -5,7 +5,7 @@ use crate::ffi::*;
 use crate::util::format;
 use crate::Dictionary;
 use crate::{frame, ChannelLayoutMask, Error};
-use libc::c_int;
+use std::ffi::c_int;
 use std::ffi::c_void;
 
 use crate::ChannelLayout;
