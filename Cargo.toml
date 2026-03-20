@@ -18,6 +18,9 @@ include = ["LICENSE", "build.rs", "src/"]
 # When changing MSRV: Also update build.yml and README.md
 rust-version = "1.80.0"
 
+[workspace]
+members = ["ffmpeg-sys-the-third"]
+
 [dependencies]
 libc = "0.2"
 bitflags = "2.8"

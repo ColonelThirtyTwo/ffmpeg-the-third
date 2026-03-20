@@ -10,7 +10,6 @@
 #![allow(rustdoc::bare_urls)]
 #![allow(rustdoc::broken_intra_doc_links)]
 #![allow(rustdoc::invalid_html_tags)]
-
 // see rust-lang/rust-bindgen#3241
 #![allow(unnecessary_transmutes)]
 
