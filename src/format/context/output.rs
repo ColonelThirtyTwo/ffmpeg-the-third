@@ -4,8 +4,8 @@ use std::ptr;
 
 use super::common::Common;
 use crate::codec::traits;
-use crate::ffi::*;
-use crate::{format, ChapterMut, Dictionary, Error, Rational, StreamMut};
+use crate::{ffi::*, Stream};
+use crate::{format, ChapterMut, Dictionary, Error, Rational};
 
 pub struct Output {
     ctx: Common,
@@ -68,10 +68,7 @@ impl Output {
         }
     }
 
-    pub fn add_stream<T, E: traits::Encoder<T>>(
-        &mut self,
-        codec: E,
-    ) -> Result<StreamMut<'_>, Error> {
+    pub fn add_stream<T, E: traits::Encoder<T>>(&mut self, codec: E) -> Result<&mut Stream, Error> {
         unsafe {
             let codec = codec.encoder();
             let codec = codec.map_or(ptr::null(), |c| c.as_ptr());
@@ -82,8 +79,7 @@ impl Output {
             }
 
             let index = (*self.ctx.as_ptr()).nb_streams - 1;
-
-            Ok(StreamMut::wrap(&mut self.ctx, index as usize))
+            Ok(self.stream_mut(index as usize).unwrap())
         }
     }
 

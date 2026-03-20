@@ -29,7 +29,7 @@ fn main() {
         stream_mapping[ist_index] = ost_index;
         ist_time_bases[ist_index] = ist.time_base();
         ost_index += 1;
-        let mut ost = octx.add_stream(encoder::find(codec::Id::None)).unwrap();
+        let ost = octx.add_stream(encoder::find(codec::Id::None)).unwrap();
         ost.set_parameters(ist.parameters());
         // We need to set codec_tag to 0 lest we run into incompatible codec tag
         // issues when muxing into a different container format. Unfortunately
@@ -42,8 +42,8 @@ fn main() {
     octx.set_metadata(ictx.metadata().to_owned());
     octx.write_header().unwrap();
 
-    for (stream, mut packet) in ictx.packets().filter_map(Result::ok) {
-        let ist_index = stream.index();
+    for mut packet in ictx.packets().filter_map(Result::ok) {
+        let ist_index = packet.stream();
         let ost_index = stream_mapping[ist_index];
         if ost_index < 0 {
             continue;

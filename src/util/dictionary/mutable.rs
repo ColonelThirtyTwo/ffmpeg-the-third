@@ -22,7 +22,7 @@ impl<'a> Ref<'a> {
         }
     }
 
-    pub unsafe fn as_mut_ptr(&self) -> *mut AVDictionary {
+    pub fn as_mut_ptr(&self) -> *mut AVDictionary {
         self.ptr
     }
 }

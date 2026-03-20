@@ -1,4 +1,4 @@
-use ffmpeg_the_third as ffmpeg;
+use ffmpeg_the_third::{self as ffmpeg, Packet};
 
 use std::env;
 use std::path::Path;
@@ -87,7 +87,7 @@ fn transcoder<P: AsRef<Path> + ?Sized>(
 
     decoder.set_parameters(input.parameters())?;
 
-    let mut output = octx.add_stream(codec)?;
+    let output = octx.add_stream(codec)?;
     let context = ffmpeg::codec::context::Context::from_parameters(output.parameters())?;
     let mut encoder = context.encoder().audio()?;
 
@@ -227,8 +227,10 @@ fn main() {
     octx.set_metadata(ictx.metadata().to_owned());
     octx.write_header().unwrap();
 
-    for (stream, mut packet) in ictx.packets().filter_map(Result::ok) {
-        if stream.index() == transcoder.stream {
+    let mut packet = Packet::empty();
+    while let Ok(()) = packet.read(&mut ictx) {
+        if packet.stream() == transcoder.stream {
+            let stream = ictx.stream(packet.stream()).unwrap();
             packet.rescale_ts(stream.time_base(), transcoder.in_time_base);
             transcoder.send_packet_to_decoder(&packet);
             transcoder.receive_and_process_decoded_frames(&mut octx);

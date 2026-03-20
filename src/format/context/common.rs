@@ -3,7 +3,7 @@ use std::mem;
 use std::ptr;
 
 use crate::ffi::*;
-use crate::{media, Chapter, ChapterMut, DictionaryRef, Stream, StreamMut};
+use crate::{media, Chapter, ChapterMut, DictionaryRef, Stream};
 use libc::{c_int, c_uint};
 
 pub struct Common {
@@ -39,29 +39,19 @@ impl Common {
         unsafe { (*self.as_ptr()).nb_streams }
     }
 
-    pub fn stream<'a, 'b>(&'a self, index: usize) -> Option<Stream<'b>>
-    where
-        'a: 'b,
-    {
-        unsafe {
-            if index >= self.nb_streams() as usize {
-                None
-            } else {
-                Some(Stream::wrap(self, index))
-            }
+    pub fn stream(&self, index: usize) -> Option<&Stream> {
+        if index >= self.nb_streams() as usize {
+            None
+        } else {
+            Some(unsafe { Stream::from_raw(*(*self.ptr).streams.add(index)) })
         }
     }
 
-    pub fn stream_mut<'a, 'b>(&'a mut self, index: usize) -> Option<StreamMut<'b>>
-    where
-        'a: 'b,
-    {
-        unsafe {
-            if index >= self.nb_streams() as usize {
-                None
-            } else {
-                Some(StreamMut::wrap(self, index))
-            }
+    pub fn stream_mut(&mut self, index: usize) -> Option<&mut Stream> {
+        if index >= self.nb_streams() as usize {
+            None
+        } else {
+            Some(unsafe { Stream::from_raw_mut(*(*self.ptr).streams.add(index)) })
         }
     }
 
@@ -133,7 +123,7 @@ pub struct Best<'a> {
 }
 
 impl<'a> Best<'a> {
-    pub unsafe fn new<'b, 'c: 'b>(context: &'c Common) -> Best<'b> {
+    pub fn new<'b, 'c: 'b>(context: &'c Common) -> Best<'b> {
         Best {
             context,
 
@@ -158,10 +148,7 @@ impl<'a> Best<'a> {
         self
     }
 
-    pub fn best<'b>(self, kind: media::Type) -> Option<Stream<'b>>
-    where
-        'a: 'b,
-    {
+    pub fn best(self, kind: media::Type) -> Option<&'a Stream> {
         unsafe {
             let decoder = ptr::null_mut();
             let index = av_find_best_stream(
@@ -174,7 +161,9 @@ impl<'a> Best<'a> {
             );
 
             if index >= 0 {
-                Some(Stream::wrap(self.context, index as usize))
+                Some(Stream::from_raw(
+                    *(*self.context.ptr).streams.add(index as usize),
+                ))
             } else {
                 None
             }
@@ -184,7 +173,7 @@ impl<'a> Best<'a> {
 
 pub struct StreamIter<'a> {
     context: &'a Common,
-    current: c_uint,
+    current: usize,
 }
 
 impl<'a> StreamIter<'a> {
@@ -202,7 +191,7 @@ impl<'a> StreamIter<'a> {
         'a: 'b,
         'a: 'c,
     {
-        unsafe { Best::new(self.context).wanted(stream) }
+        Best::new(self.context).wanted(stream)
     }
 
     pub fn related<'b, 'c>(&self, stream: &'b Stream) -> Best<'c>
@@ -210,39 +199,30 @@ impl<'a> StreamIter<'a> {
         'a: 'b,
         'a: 'c,
     {
-        unsafe { Best::new(self.context).related(stream) }
+        Best::new(self.context).related(stream)
     }
 
-    pub fn best<'b>(&self, kind: media::Type) -> Option<Stream<'b>>
-    where
-        'a: 'b,
-    {
-        unsafe { Best::new(self.context).best(kind) }
+    pub fn best(&self, kind: media::Type) -> Option<&'a Stream> {
+        Best::new(self.context).best(kind)
     }
 }
 
 impl<'a> Iterator for StreamIter<'a> {
-    type Item = Stream<'a>;
+    type Item = &'a Stream;
 
     fn next(&mut self) -> Option<<Self as Iterator>::Item> {
-        unsafe {
-            if self.current >= self.context.nb_streams() {
-                return None;
-            }
-
-            self.current += 1;
-
-            Some(Stream::wrap(self.context, (self.current - 1) as usize))
+        if self.current >= self.context.nb_streams() as usize {
+            return None;
         }
+
+        self.current += 1;
+        Some(self.context.stream(self.current - 1).unwrap())
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let length = self.context.nb_streams() as usize;
 
-        (
-            length - self.current as usize,
-            Some(length - self.current as usize),
-        )
+        (length - self.current, Some(length - self.current))
     }
 }
 
@@ -250,7 +230,7 @@ impl<'a> ExactSizeIterator for StreamIter<'a> {}
 
 pub struct StreamIterMut<'a> {
     context: &'a mut Common,
-    current: c_uint,
+    current: usize,
 }
 
 impl<'a> StreamIterMut<'a> {
@@ -263,29 +243,20 @@ impl<'a> StreamIterMut<'a> {
 }
 
 impl<'a> Iterator for StreamIterMut<'a> {
-    type Item = StreamMut<'a>;
+    type Item = &'a mut Stream;
 
     fn next(&mut self) -> Option<<Self as Iterator>::Item> {
-        if self.current >= self.context.nb_streams() {
+        if self.current >= self.context.nb_streams() as usize {
             return None;
         }
         self.current += 1;
-
-        unsafe {
-            Some(StreamMut::wrap(
-                mem::transmute_copy(&self.context),
-                (self.current - 1) as usize,
-            ))
-        }
+        Some(unsafe { Stream::from_raw_mut(*(*self.context.ptr).streams.add(self.current - 1)) })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
         let length = self.context.nb_streams() as usize;
 
-        (
-            length - self.current as usize,
-            Some(length - self.current as usize),
-        )
+        (length - self.current, Some(length - self.current))
     }
 }
 

@@ -22,10 +22,9 @@ impl<'a> Owned<'a> {
         }
     }
 
-    pub unsafe fn disown(mut self) -> *mut AVDictionary {
+    pub fn disown(mut self) -> *mut AVDictionary {
         let result = self.inner.as_mut_ptr();
-        self.inner = mutable::Ref::wrap(ptr::null_mut());
-
+        self.inner = unsafe { mutable::Ref::wrap(ptr::null_mut()) };
         result
     }
 }

@@ -36,7 +36,7 @@ pub mod format;
 #[cfg(feature = "format")]
 pub use crate::format::{
     chapter::{Chapter, ChapterMut},
-    stream::{Stream, StreamMut},
+    stream::Stream,
 };
 
 #[cfg(feature = "codec")]

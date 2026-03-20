@@ -1,10 +1,9 @@
 use std::ffi::CString;
-use std::mem;
 use std::ops::{Bound, Deref, DerefMut, RangeBounds};
 
 use super::common::Common;
 use crate::ffi::*;
-use crate::{format, Error, Packet, Stream};
+use crate::{format, Error, Packet};
 
 pub struct Input {
     ctx: Common,
@@ -107,21 +106,14 @@ impl<'a> PacketIter<'a> {
 }
 
 impl<'a> Iterator for PacketIter<'a> {
-    type Item = Result<(Stream<'a>, Packet), Error>;
+    type Item = Result<Packet, Error>;
 
     fn next(&mut self) -> Option<<Self as Iterator>::Item> {
         let mut packet = Packet::empty();
 
         match packet.read(self.context) {
-            Ok(..) => unsafe {
-                Some(Ok((
-                    Stream::wrap(mem::transmute_copy(&self.context), packet.stream()),
-                    packet,
-                )))
-            },
-
+            Ok(()) => Some(Ok(packet)),
             Err(Error::Eof) => None,
-
             Err(e) => Some(Err(e)),
         }
     }
